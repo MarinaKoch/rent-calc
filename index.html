@@ -1,0 +1,837 @@
+<style>
+  :root {
+    --bg: #F6F4EF;
+    --surface: #FFFFFF;
+    --ink: #20303A;
+    --ink-soft: #62727A;
+    --line: #E1DDD2;
+    --teal: #235D64;
+    --teal-deep: #163E43;
+    --amber: #B87A3D;
+    --amber-soft: #F1E3D1;
+    --radius: 10px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  #util-app {
+    background: var(--bg);
+    color: var(--ink);
+    padding: 28px 20px 60px;
+    min-height: 100%;
+    line-height: 1.45;
+  }
+
+  .util-wrap { max-width: 640px; margin: 0 auto; }
+
+  .util-header { margin-bottom: 24px; }
+  .util-eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .util-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--teal-deep);
+    margin: 0 0 4px;
+  }
+  .util-sub { color: var(--ink-soft); font-size: 14px; }
+
+  .util-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .util-card h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--teal);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .subgroup-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 14px 0 4px;
+  }
+  .subgroup-label:first-child { margin-top: 0; }
+
+  .period-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .period-row input {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 14px;
+    background: #FCFBF8;
+    color: var(--ink);
+  }
+
+  .meter-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 0.9fr;
+    gap: 10px;
+    align-items: end;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .meter-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .hard-divider {
+    height: 1px;
+    background: var(--line);
+    width: 100%;
+    margin: 12px 0;
+  }
+
+  .meter-name { font-size: 14px; font-weight: 600; padding-bottom: 8px; }
+  .meter-diff {
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .subtotal-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--teal);
+    padding: 8px 0 4px;
+  }
+
+  .amount-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 10px;
+    align-items: end;
+    padding: 12px 0;
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+
+  input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: 'Consolas', monospace;
+    font-size: 14px;
+    background: #FCFBF8;
+    color: var(--ink);
+  }
+  input:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  input.req-fill {
+    border: 1.5px solid var(--amber);
+    background: var(--amber-soft);
+  }
+  input.req-fill::placeholder { color: #A9895F; }
+  .req-fill-note { color: var(--amber); font-weight: 600; }
+
+  .drainage-input-cell { grid-column: span 2; }
+
+  .meter-cost {
+    font-family: 'Consolas', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--teal-deep);
+    text-align: right;
+  }
+
+  .util-toggle {
+    background: none;
+    border: none;
+    color: var(--teal);
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  .settings-body { display: none; }
+  .settings-body.open { display: block; }
+
+  .settings-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+  }
+  .settings-row span { font-size: 13px; }
+
+  .util-total {
+    background: var(--teal-deep);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .util-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 4px 0;
+    color: #CFE1DF;
+  }
+  .util-total-final {
+    display: flex;
+    justify-content: space-between;
+    font-size: 22px;
+    font-weight: 700;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .util-btn {
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .util-btn:hover { background: var(--teal-deep); }
+  .util-btn.secondary {
+    background: transparent;
+    color: var(--teal);
+    border: 1px solid var(--teal);
+  }
+  .util-btn.secondary:hover { background: var(--amber-soft); }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+
+  textarea.msg-box {
+    width: 100%;
+    min-height: 160px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    background: #FCFBF8;
+    resize: vertical;
+  }
+
+  .util-note {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+  }
+
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-soft);
+    gap: 8px;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item b { color: var(--ink); }
+  .history-period { flex: 1; }
+  .history-period input {
+    padding: 5px 8px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .history-actions { display: flex; gap: 6px; align-items: center; }
+  .history-icon-btn {
+    background: none;
+    border: none;
+    color: var(--teal);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 4px;
+    text-decoration: underline;
+  }
+  .history-icon-btn.danger { color: var(--amber); }
+
+  .history-entry { border-bottom: 1px solid var(--line); }
+  .history-entry:last-child { border-bottom: none; }
+  .history-entry .history-item { border-bottom: none; }
+
+  .history-expand-btn {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0 2px;
+    width: 16px;
+    flex: none;
+  }
+
+  .history-detail {
+    display: none;
+    background: #FAF8F3;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 0 0 10px 22px;
+  }
+  .history-detail.open { display: block; }
+
+  .detail-line {
+    display: grid;
+    grid-template-columns: 1.4fr 1.4fr 0.8fr;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    padding: 4px 0;
+  }
+  .detail-line span:last-child { text-align: right; color: var(--ink); }
+  .detail-mono { font-family: 'Consolas', monospace; }
+  .detail-header span:first-child {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--teal);
+  }
+  .detail-sum {
+    border-top: 1px solid var(--line);
+    margin-top: 4px;
+    padding-top: 6px;
+    font-weight: 700;
+  }
+  .detail-sum span { color: var(--ink); }
+
+  .util-empty {
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  .status-msg {
+    font-size: 12px;
+    color: var(--teal);
+    margin-top: 6px;
+    min-height: 16px;
+  }
+</style>
+
+<div id="util-app">
+  <div class="util-wrap">
+
+    <div class="util-header">
+      <div class="util-eyebrow">Учёт оплаты</div>
+      <h1 class="util-title">Калькулятор квартплаты с ЖКУ</h1>
+      <div class="util-sub">Заполни показания — сумма и сообщение соберутся сами</div>
+    </div>
+
+    <div class="util-card">
+      <h2>Месяц</h2>
+      <div class="period-row">
+        <input type="text" id="period-input" placeholder="напр. Май - Июнь 26">
+      </div>
+      <div class="util-note">Подставь период так, как обычно пишешь.</div>
+    </div>
+
+    <div class="util-card">
+      <h2>Вводные для расчета</h2>
+      <div class="settings-row">
+        <span>Имя арендатора</span>
+        <input type="text" id="tenant-name" placeholder="напр. Яна">
+      </div>
+      <div class="settings-row">
+        <span>Квартплата, ₽</span>
+        <input type="number" step="1" id="rent-fee">
+      </div>
+      <div class="settings-row">
+        <span>Интернет, фикс. сумма ₽</span>
+        <input type="number" step="1" id="internet-fee">
+      </div>
+      <div class="settings-row">
+        <span>Долг (+) / переплата (−) с прошлого месяца, ₽</span>
+        <input type="number" step="0.01" id="debt-amount" placeholder="0">
+      </div>
+      <div class="util-note">Квартплата и интернет сохраняются между месяцами. Долг/переплату заполняй, только если она есть.</div>
+    </div>
+
+    <div class="util-card">
+      <h2>
+        Показания счётчиков
+        <button class="util-toggle" id="toggle-settings">Тарифы</button>
+      </h2>
+
+      <div class="settings-body" id="settings-body">
+        <div class="settings-row">
+          <span>Электричество Т1, ₽/кВт·ч</span>
+          <input type="number" step="0.01" id="tariff-elec_t1">
+        </div>
+        <div class="settings-row">
+          <span>Электричество Т2, ₽/кВт·ч</span>
+          <input type="number" step="0.01" id="tariff-elec_t2">
+        </div>
+        <div class="settings-row">
+          <span>Электричество Т3, ₽/кВт·ч</span>
+          <input type="number" step="0.01" id="tariff-elec_t3">
+        </div>
+        <div class="settings-row">
+          <span>Холодная вода, ₽/м³</span>
+          <input type="number" step="0.01" id="tariff-coldwater">
+        </div>
+        <div class="settings-row">
+          <span>Горячая вода, ₽/м³</span>
+          <input type="number" step="0.01" id="tariff-hotwater">
+        </div>
+        <div class="util-note">Тарифы сохраняются автоматически и подставляются каждый месяц.</div>
+      </div>
+
+      <div class="subgroup-label">Электричество</div>
+      <div id="electricity-container"></div>
+      <div class="subtotal-row"><span>Итого электричество</span><span id="electricity-subtotal">0 ₽</span></div>
+
+      <div class="subgroup-label">Вода</div>
+      <div id="water-container"></div>
+      <div class="hard-divider"></div>
+      <div class="meter-row" style="border-bottom: none; padding-bottom: 0;">
+        <div>
+          <div class="meter-name">Водоотведение</div>
+          <div class="meter-diff">из квитанции, не по тарифу</div>
+        </div>
+        <div class="drainage-input-cell">
+          <label class="field-label">Сумма, ₽</label>
+          <input type="number" step="0.01" id="drainage-amount" class="req-fill" placeholder="0">
+        </div>
+        <div class="meter-cost" id="drainage-display">0 ₽</div>
+      </div>
+      <div class="util-note">Можно отрицательную сумму — вписывается заново каждый месяц.</div>
+    </div>
+
+    <div class="util-total">
+      <div class="util-total-row"><span>Квартплата</span><span id="total-rent">0 ₽</span></div>
+      <div class="util-total-row"><span>ЖКУ</span><span id="total-utilities">0 ₽</span></div>
+      <div class="util-total-row"><span>Интернет</span><span id="total-internet">0 ₽</span></div>
+      <div class="util-total-row" id="debt-row"><span>Долг / переплата</span><span id="total-debt">0 ₽</span></div>
+      <div class="util-total-final"><span>Сумма</span><span id="total-final">0 ₽</span></div>
+    </div>
+
+    <div class="util-card">
+      <h2>Сообщение арендатору</h2>
+      <textarea class="msg-box" id="message-box" readonly></textarea>
+      <div class="btn-row">
+        <button class="util-btn secondary" id="copy-btn">Скопировать сообщение</button>
+      </div>
+      <div class="status-msg" id="copy-status"></div>
+    </div>
+
+    <div class="util-card">
+      <h2>Сохранить месяц</h2>
+      <div class="util-note">Показания счётчиков станут «предыдущими» для следующего месяца. Водоотведение не переносится — его нужно будет вписать заново.</div>
+      <div class="btn-row">
+        <button class="util-btn" id="save-btn">Сохранить этот расчёт</button>
+      </div>
+      <div class="status-msg" id="save-status"></div>
+    </div>
+
+    <div class="util-card">
+      <h2>История</h2>
+      <div id="history-container"><div class="util-empty">Пока нет сохранённых месяцев.</div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+(function () {
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
+
+  const ELECTRICITY_METERS = [
+    { key: 'elec_t1', name: 'Т1', unit: 'кВт·ч' },
+    { key: 'elec_t2', name: 'Т2', unit: 'кВт·ч' },
+    { key: 'elec_t3', name: 'Т3', unit: 'кВт·ч' }
+  ];
+  const WATER_METERS = [
+    { key: 'coldwater', name: 'Холодная вода', unit: 'м³' },
+    { key: 'hotwater', name: 'Горячая вода', unit: 'м³' }
+  ];
+  const ALL_METERS = [...ELECTRICITY_METERS, ...WATER_METERS];
+
+  const DEFAULT_CONFIG = {
+    tariffs: { elec_t1: 3, elec_t2: 4, elec_t3: 5, coldwater: 45, hotwater: 180 },
+    internetFee: 450,
+    rentFee: 90000
+  };
+
+  let config = { ...DEFAULT_CONFIG };
+  let previousReadings = { elec_t1: 0, elec_t2: 0, elec_t3: 0, coldwater: 0, hotwater: 0 };
+  let history = [];
+
+  const monthNamesNom = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const now = new Date();
+  const prevMonthIdx = (now.getMonth() - 1 + 12) % 12;
+  const currMonthIdx = now.getMonth();
+  const defaultPeriod = `${monthNamesNom[prevMonthIdx]}-${monthNamesNom[currMonthIdx]} ${now.getFullYear()}`;
+
+  function fmt(n) {
+    const sign = n < 0 ? '-' : '';
+    return sign + Math.round(Math.abs(n)).toLocaleString('ru-RU') + ' ₽';
+  }
+
+  function loadData() {
+    // Состояние приходит от бота через хэш ссылки: #state=<encoded JSON>
+    // Бот формирует эту ссылку динамически при открытии Mini App,
+    // подставляя профиль пользователя и последние месяцы из своей БД.
+    try {
+      const hash = window.location.hash.replace(/^#/, '');
+      const params = new URLSearchParams(hash);
+      const raw = params.get('state');
+      if (raw) {
+        const state = JSON.parse(decodeURIComponent(raw));
+        if (state.profile) {
+          const p = state.profile;
+          config = {
+            ...DEFAULT_CONFIG,
+            rentFee: p.rentFee ?? DEFAULT_CONFIG.rentFee,
+            internetFee: p.internetFee ?? DEFAULT_CONFIG.internetFee,
+            tenantName: p.tenantName || '',
+            lastPeriod: p.lastPeriod || '',
+            tariffs: { ...DEFAULT_CONFIG.tariffs, ...(p.tariffs || {}) },
+          };
+          previousReadings = { ...previousReadings, ...(p.lastReadings || {}) };
+        }
+        if (Array.isArray(state.history)) history = state.history;
+      }
+    } catch (e) { console.error('Failed to parse state from hash', e); }
+
+    if (history.length > 0) {
+      const last = history[history.length - 1];
+      previousReadings = { ...previousReadings, ...last.current };
+    }
+
+    renderSettings();
+    renderMeters();
+    renderHistory();
+    document.getElementById('period-input').value = config.lastPeriod || defaultPeriod;
+    document.getElementById('period-input').addEventListener('input', recalc);
+    document.getElementById('drainage-amount').addEventListener('input', recalc);
+    document.getElementById('debt-amount').addEventListener('input', recalc);
+    document.getElementById('tenant-name').addEventListener('input', recalc);
+  }
+
+  function renderSettings() {
+    document.getElementById('rent-fee').value = config.rentFee;
+    document.getElementById('tenant-name').value = config.tenantName || '';
+    document.getElementById('tariff-elec_t1').value = config.tariffs.elec_t1;
+    document.getElementById('tariff-elec_t2').value = config.tariffs.elec_t2;
+    document.getElementById('tariff-elec_t3').value = config.tariffs.elec_t3;
+    document.getElementById('tariff-coldwater').value = config.tariffs.coldwater;
+    document.getElementById('tariff-hotwater').value = config.tariffs.hotwater;
+    document.getElementById('internet-fee').value = config.internetFee;
+  }
+
+  function buildMeterRow(m) {
+    const row = document.createElement('div');
+    row.className = 'meter-row';
+    row.innerHTML = `
+      <div>
+        <div class="meter-name">${m.name}</div>
+      </div>
+      <div>
+        <label class="field-label">Прошлый</label>
+        <input type="number" step="0.01" id="prev-${m.key}" value="${previousReadings[m.key] ?? 0}">
+      </div>
+      <div>
+        <label class="field-label">Текущий</label>
+        <input type="number" step="0.01" id="curr-${m.key}" class="req-fill" placeholder="0">
+      </div>
+      <div class="meter-cost" id="cost-${m.key}">0 ₽</div>
+    `;
+    return row;
+  }
+
+  function renderMeters() {
+    const elecContainer = document.getElementById('electricity-container');
+    elecContainer.innerHTML = '';
+    ELECTRICITY_METERS.forEach(m => elecContainer.appendChild(buildMeterRow(m)));
+
+    const waterContainer = document.getElementById('water-container');
+    waterContainer.innerHTML = '';
+    WATER_METERS.forEach(m => waterContainer.appendChild(buildMeterRow(m)));
+
+    ALL_METERS.forEach(m => {
+      document.getElementById(`prev-${m.key}`).addEventListener('input', recalc);
+      document.getElementById(`curr-${m.key}`).addEventListener('input', recalc);
+    });
+
+    recalc();
+  }
+
+  function renderHistory() {
+    const container = document.getElementById('history-container');
+    if (history.length === 0) {
+      container.innerHTML = '<div class="util-empty">Пока нет сохранённых месяцев.</div>';
+      return;
+    }
+    container.innerHTML = '';
+    // real indices into `history`, shown most recent first
+    const order = history.map((_, i) => i).reverse().slice(0, 12);
+
+    order.forEach(idx => {
+      const h = history[idx];
+      const wrap = document.createElement('div');
+      wrap.className = 'history-entry';
+
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.innerHTML = `
+        <button class="history-expand-btn" data-action="toggle" data-idx="${idx}" aria-label="Развернуть">▸</button>
+        <span class="history-period">${h.period}</span>
+        <b>${fmt(h.total)}</b>
+      `;
+      wrap.appendChild(item);
+
+      const detail = document.createElement('div');
+      detail.className = 'history-detail';
+      detail.id = `detail-${idx}`;
+      detail.innerHTML = buildDetailHtml(h);
+      wrap.appendChild(detail);
+
+      container.appendChild(wrap);
+    });
+
+    container.querySelectorAll('[data-action="toggle"]').forEach(btn => {
+      btn.addEventListener('click', () => toggleHistoryDetail(parseInt(btn.dataset.idx, 10)));
+    });
+  }
+
+  function buildDetailHtml(h) {
+    const b = h.breakdown;
+    if (!b) {
+      return '<div class="util-note">Для этой записи нет сохранённой детализации (сделана до обновления).</div>';
+    }
+    const meterLines = (b.meters || []).map(m =>
+      `<div class="detail-line"><span>${m.name}</span><span class="detail-mono">${m.prev} → ${m.curr} (× ${m.tariff})</span><span class="detail-mono">${fmt(m.cost)}</span></div>`
+    ).join('');
+    return `
+      <div class="detail-line detail-header"><span>Электричество и вода</span><span></span><span></span></div>
+      ${meterLines}
+      <div class="detail-line"><span>Водоотведение</span><span></span><span class="detail-mono">${fmt(b.drainageAmount || 0)}</span></div>
+      <div class="detail-line detail-sum"><span>ЖКУ итого</span><span></span><span class="detail-mono">${fmt(b.totalUtilities)}</span></div>
+      <div class="detail-line"><span>Квартплата</span><span></span><span class="detail-mono">${fmt(b.rentFee)}</span></div>
+      <div class="detail-line"><span>Интернет</span><span></span><span class="detail-mono">${fmt(b.internetFee)}</span></div>
+      ${b.debtAmount ? `<div class="detail-line"><span>${b.debtAmount > 0 ? 'Долг с прошлого месяца' : 'Переплата с прошлого месяца'}</span><span></span><span class="detail-mono">${fmt(b.debtAmount)}</span></div>` : ''}
+    `;
+  }
+
+  function toggleHistoryDetail(idx) {
+    const detail = document.getElementById(`detail-${idx}`);
+    const btn = document.querySelector(`[data-action="toggle"][data-idx="${idx}"]`);
+    const isOpen = detail.classList.toggle('open');
+    if (btn) btn.textContent = isOpen ? '▾' : '▸';
+  }
+
+  function recalc() {
+    let electricitySubtotal = 0;
+    let waterSubtotal = 0;
+    const details = [];
+
+    ELECTRICITY_METERS.forEach(m => {
+      const prev = parseFloat(document.getElementById(`prev-${m.key}`).value) || 0;
+      const curr = parseFloat(document.getElementById(`curr-${m.key}`).value) || 0;
+      const tariff = parseFloat(document.getElementById(`tariff-${m.key}`).value) || 0;
+      const diff = Math.max(curr - prev, 0);
+      const cost = diff * tariff;
+      electricitySubtotal += cost;
+
+      document.getElementById(`cost-${m.key}`).textContent = fmt(cost);
+      details.push({ name: m.name, unit: m.unit, prev, curr, diff, tariff, cost });
+    });
+    document.getElementById('electricity-subtotal').textContent = fmt(electricitySubtotal);
+
+    WATER_METERS.forEach(m => {
+      const prev = parseFloat(document.getElementById(`prev-${m.key}`).value) || 0;
+      const curr = parseFloat(document.getElementById(`curr-${m.key}`).value) || 0;
+      const tariff = parseFloat(document.getElementById(`tariff-${m.key}`).value) || 0;
+      const diff = Math.max(curr - prev, 0);
+      const cost = diff * tariff;
+      waterSubtotal += cost;
+
+      document.getElementById(`cost-${m.key}`).textContent = fmt(cost);
+      details.push({ name: m.name, unit: m.unit, prev, curr, diff, tariff, cost });
+    });
+
+    const drainageAmount = parseFloat(document.getElementById('drainage-amount').value) || 0;
+    document.getElementById('drainage-display').textContent = fmt(drainageAmount);
+
+    const debtAmount = parseFloat(document.getElementById('debt-amount').value) || 0;
+
+    const totalUtilities = electricitySubtotal + waterSubtotal + drainageAmount;
+    const internetFee = parseFloat(document.getElementById('internet-fee').value) || 0;
+    const rentFee = parseFloat(document.getElementById('rent-fee').value) || 0;
+    const total = rentFee + totalUtilities + internetFee + debtAmount;
+
+    document.getElementById('total-rent').textContent = fmt(rentFee);
+    document.getElementById('total-utilities').textContent = fmt(totalUtilities);
+    document.getElementById('total-internet').textContent = fmt(internetFee);
+    document.getElementById('total-debt').textContent = fmt(debtAmount);
+    document.getElementById('debt-row').style.display = debtAmount === 0 ? 'none' : 'flex';
+    document.getElementById('total-final').textContent = fmt(total);
+
+    updateMessage(rentFee, totalUtilities, internetFee, debtAmount, total);
+    return { details, internetFee, rentFee, total, totalUtilities, drainageAmount, debtAmount };
+  }
+
+  function updateMessage(rentFee, totalUtilities, internetFee, debtAmount, total) {
+    const period = document.getElementById('period-input').value.trim() || defaultPeriod;
+    const tenant = document.getElementById('tenant-name').value.trim();
+    const greeting = tenant ? `${tenant}, добрый день! Вот расчёт по оплате аренды.` : 'Добрый день! Вот расчёт по оплате аренды.';
+
+    const lines = [];
+    lines.push(greeting);
+    lines.push('');
+    lines.push(`Месяц: ${period}`);
+    lines.push('');
+    lines.push(`Квартплата: ${fmt(rentFee)}`);
+    lines.push(`ЖКУ: ${fmt(totalUtilities)}`);
+    lines.push(`Интернет: ${fmt(internetFee)}`);
+    if (debtAmount !== 0) {
+      const label = debtAmount > 0 ? 'Долг с прошлого месяца' : 'Переплата с прошлого месяца';
+      lines.push(`${label}: ${fmt(debtAmount)}`);
+    }
+    lines.push(`Сумма: ${fmt(total)}`);
+
+    document.getElementById('message-box').value = lines.join('\n');
+  }
+
+  function saveConfig() {
+    // Держим конфиг в памяти сессии. На backend он уходит одним пакетом
+    // вместе с расчётом — см. кнопку "Сохранить этот расчёт" ниже.
+    config.rentFee = parseFloat(document.getElementById('rent-fee').value) || 0;
+    config.tenantName = document.getElementById('tenant-name').value.trim();
+    config.tariffs.elec_t1 = parseFloat(document.getElementById('tariff-elec_t1').value) || 0;
+    config.tariffs.elec_t2 = parseFloat(document.getElementById('tariff-elec_t2').value) || 0;
+    config.tariffs.elec_t3 = parseFloat(document.getElementById('tariff-elec_t3').value) || 0;
+    config.tariffs.coldwater = parseFloat(document.getElementById('tariff-coldwater').value) || 0;
+    config.tariffs.hotwater = parseFloat(document.getElementById('tariff-hotwater').value) || 0;
+    config.internetFee = parseFloat(document.getElementById('internet-fee').value) || 0;
+    config.lastPeriod = document.getElementById('period-input').value.trim();
+  }
+
+  document.getElementById('toggle-settings').addEventListener('click', () => {
+    document.getElementById('settings-body').classList.toggle('open');
+  });
+
+  ['rent-fee','tenant-name','tariff-elec_t1','tariff-elec_t2','tariff-elec_t3','tariff-coldwater','tariff-hotwater','internet-fee'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => {
+      saveConfig();
+      recalc();
+    });
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', () => {
+    const box = document.getElementById('message-box');
+    box.select();
+    document.execCommand('copy');
+    const status = document.getElementById('copy-status');
+    status.textContent = 'Скопировано!';
+    setTimeout(() => { status.textContent = ''; }, 2000);
+  });
+
+  document.getElementById('save-btn').addEventListener('click', () => {
+    const { details, total, rentFee, internetFee, totalUtilities, drainageAmount, debtAmount } = recalc();
+    const period = document.getElementById('period-input').value.trim() || defaultPeriod;
+    const currentReadings = {};
+    details.forEach(d => {
+      const key = ALL_METERS.find(m => m.name === d.name).key;
+      currentReadings[key] = d.curr;
+    });
+
+    saveConfig();
+
+    const entry = {
+      period,
+      date: new Date().toISOString(),
+      current: currentReadings,
+      total,
+      breakdown: {
+        rentFee,
+        internetFee,
+        totalUtilities,
+        drainageAmount,
+        debtAmount,
+        meters: details.map(d => ({
+          name: d.name, unit: d.unit, prev: d.prev, curr: d.curr, diff: d.diff, tariff: d.tariff, cost: d.cost
+        }))
+      }
+    };
+
+    // Профиль (тарифы/квартплата/показания) — для следующего открытия калькулятора.
+    // Бот сохранит и то, и другое в своей БД и закроет Mini App.
+    const payload = {
+      config: {
+        tenantName: config.tenantName,
+        rentFee: config.rentFee,
+        internetFee: config.internetFee,
+        tariffs: config.tariffs,
+        lastPeriod: period,
+        lastReadings: { ...previousReadings, ...currentReadings },
+      },
+      entry,
+    };
+
+    const status = document.getElementById('save-status');
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.sendData(JSON.stringify(payload));
+        // sendData закрывает Mini App сама по себе, но на некоторых клиентах
+        // не сразу — подтверждение придёт от бота отдельным сообщением в чат.
+      } else {
+        status.textContent = 'Открой это через кнопку бота в Telegram — вне Telegram сохранение не работает.';
+      }
+    } catch (e) {
+      status.textContent = 'Ошибка отправки, попробуй ещё раз.';
+      console.error(e);
+    }
+  });
+
+  loadData();
+})();
+</script>
