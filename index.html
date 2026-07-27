@@ -495,7 +495,7 @@
   const ALL_METERS = [...ELECTRICITY_METERS, ...WATER_METERS];
 
   const DEFAULT_CONFIG = {
-    tariffs: { elec_t1: 3, elec_t2: 4, elec_t3: 5, coldwater: 45, hotwater: 180 },
+    tariffs: { elec_t1: 10.23, elec_t2: 3.71, elec_t3: 8.6, coldwater: 65.77, hotwater: 312.5 },
     internetFee: 450,
     rentFee: 90000
   };
@@ -513,6 +513,57 @@
   function fmt(n) {
     const sign = n < 0 ? '-' : '';
     return sign + Math.round(Math.abs(n)).toLocaleString('ru-RU') + ' ₽';
+  }
+
+  // Черновик: то, что пользователь ввёл, но ещё не нажал "Сохранить этот расчёт".
+  // Хранится в localStorage этого устройства (независимо от бота), чтобы можно
+  // было выйти и вернуться, не потеряв частично введённые показания.
+  function draftKey() {
+    let tgId = 'anon';
+    try {
+      tgId = (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) || 'anon';
+    } catch (e) { /* ignore */ }
+    return `rentcalc_draft_${tgId}`;
+  }
+
+  let draftCurrentReadings = {};
+
+  function saveDraft() {
+    try {
+      const draft = {
+        period: document.getElementById('period-input').value,
+        tenantName: document.getElementById('tenant-name').value,
+        rentFee: document.getElementById('rent-fee').value,
+        internetFee: document.getElementById('internet-fee').value,
+        drainageAmount: document.getElementById('drainage-amount').value,
+        debtAmount: document.getElementById('debt-amount').value,
+        tariffs: {
+          elec_t1: document.getElementById('tariff-elec_t1').value,
+          elec_t2: document.getElementById('tariff-elec_t2').value,
+          elec_t3: document.getElementById('tariff-elec_t3').value,
+          coldwater: document.getElementById('tariff-coldwater').value,
+          hotwater: document.getElementById('tariff-hotwater').value,
+        },
+        current: {},
+      };
+      ALL_METERS.forEach((m) => {
+        const el = document.getElementById(`curr-${m.key}`);
+        if (el) draft.current[m.key] = el.value;
+      });
+      localStorage.setItem(draftKey(), JSON.stringify(draft));
+    } catch (e) { /* localStorage недоступен — просто не сохраняем черновик */ }
+  }
+
+  function loadDraft() {
+    try {
+      const raw = localStorage.getItem(draftKey());
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) { return null; }
+  }
+
+  function clearDraft() {
+    try { localStorage.removeItem(draftKey()); } catch (e) { /* ignore */ }
   }
 
   function loadData() {
@@ -546,10 +597,31 @@
       previousReadings = { ...previousReadings, ...last.current };
     }
 
+    // Черновик накладывается поверх — это несохранённые правки, они новее.
+    const draft = loadDraft();
+    if (draft) {
+      if (draft.period) config.lastPeriod = draft.period;
+      if (draft.tenantName !== undefined) config.tenantName = draft.tenantName;
+      if (draft.rentFee) config.rentFee = parseFloat(draft.rentFee) || config.rentFee;
+      if (draft.internetFee) config.internetFee = parseFloat(draft.internetFee) || config.internetFee;
+      if (draft.tariffs) {
+        config.tariffs = {
+          elec_t1: parseFloat(draft.tariffs.elec_t1) || config.tariffs.elec_t1,
+          elec_t2: parseFloat(draft.tariffs.elec_t2) || config.tariffs.elec_t2,
+          elec_t3: parseFloat(draft.tariffs.elec_t3) || config.tariffs.elec_t3,
+          coldwater: parseFloat(draft.tariffs.coldwater) || config.tariffs.coldwater,
+          hotwater: parseFloat(draft.tariffs.hotwater) || config.tariffs.hotwater,
+        };
+      }
+      draftCurrentReadings = draft.current || {};
+    }
+
     renderSettings();
     renderMeters();
     renderHistory();
-    document.getElementById('period-input').value = config.lastPeriod || defaultPeriod;
+    document.getElementById('period-input').value = (draft && draft.period) || config.lastPeriod || defaultPeriod;
+    document.getElementById('drainage-amount').value = (draft && draft.drainageAmount) || '';
+    document.getElementById('debt-amount').value = (draft && draft.debtAmount) || '';
     document.getElementById('period-input').addEventListener('input', recalc);
     document.getElementById('drainage-amount').addEventListener('input', recalc);
     document.getElementById('debt-amount').addEventListener('input', recalc);
@@ -580,7 +652,7 @@
       </div>
       <div>
         <label class="field-label">Текущий</label>
-        <input type="number" step="0.01" id="curr-${m.key}" class="req-fill" placeholder="0">
+        <input type="number" step="0.01" id="curr-${m.key}" class="req-fill" placeholder="0" value="${draftCurrentReadings[m.key] ?? ''}">
       </div>
       <div class="meter-cost" id="cost-${m.key}">0 ₽</div>
     `;
@@ -716,6 +788,7 @@
     document.getElementById('total-final').textContent = fmt(total);
 
     updateMessage(rentFee, totalUtilities, internetFee, debtAmount, total);
+    saveDraft();
     return { details, internetFee, rentFee, total, totalUtilities, drainageAmount, debtAmount };
   }
 
@@ -820,6 +893,7 @@
     const status = document.getElementById('save-status');
     try {
       if (window.Telegram && window.Telegram.WebApp) {
+        clearDraft();
         window.Telegram.WebApp.sendData(JSON.stringify(payload));
         // sendData закрывает Mini App сама по себе, но на некоторых клиентах
         // не сразу — подтверждение придёт от бота отдельным сообщением в чат.
