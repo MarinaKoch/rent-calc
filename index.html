@@ -519,11 +519,7 @@
   // Хранится в localStorage этого устройства (независимо от бота), чтобы можно
   // было выйти и вернуться, не потеряв частично введённые показания.
   function draftKey() {
-    let tgId = 'anon';
-    try {
-      tgId = (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) || 'anon';
-    } catch (e) { /* ignore */ }
-    return `rentcalc_draft_${tgId}`;
+    return 'rentcalc_draft_v2';
   }
 
   let draftCurrentReadings = {};
@@ -602,7 +598,7 @@
     const draft = loadDraft();
     if (draft) {
       if (draft.period) config.lastPeriod = draft.period;
-      if (draft.tenantName !== undefined) config.tenantName = draft.tenantName;
+      if (draft.tenantName) config.tenantName = draft.tenantName;
       if (draft.rentFee) config.rentFee = parseFloat(draft.rentFee) || config.rentFee;
       if (draft.internetFee) config.internetFee = parseFloat(draft.internetFee) || config.internetFee;
       if (draft.tariffs) {
@@ -616,17 +612,6 @@
       }
       draftCurrentReadings = draft.current || {};
     }
-
-    // ВРЕМЕННО, для отладки — покажет, что пришло от бота и что дал черновик.
-    try {
-      const dbg = document.createElement('div');
-      dbg.style.cssText = 'background:#fff3cd;color:#333;padding:8px;margin:8px 0;font-size:11px;border-radius:6px;word-break:break-all;';
-      dbg.textContent =
-        'DEBUG profile: ' + (state && state.profile ? JSON.stringify(state.profile) : 'null') +
-        ' | draft: ' + (draft ? JSON.stringify(draft) : 'null') +
-        ' | итог tenantName: "' + config.tenantName + '"';
-      document.body.insertBefore(dbg, document.body.firstChild);
-    } catch (e) { /* ignore */ }
 
     renderSettings();
     renderMeters();
