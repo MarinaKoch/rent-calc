@@ -379,15 +379,15 @@
       </div>
       <div class="settings-row">
         <span>Квартплата, ₽</span>
-        <input type="number" step="1" id="rent-fee">
+        <input autocomplete="off" type="number" step="1" id="rent-fee">
       </div>
       <div class="settings-row">
         <span>Интернет, фикс. сумма ₽</span>
-        <input type="number" step="1" id="internet-fee">
+        <input autocomplete="off" type="number" step="1" id="internet-fee">
       </div>
       <div class="settings-row">
         <span>Долг (+) / переплата (−) с прошлого месяца, ₽</span>
-        <input type="number" step="0.01" id="debt-amount" placeholder="0">
+        <input autocomplete="off" type="number" step="0.01" id="debt-amount" placeholder="0">
       </div>
       <div class="util-note">Квартплата и интернет сохраняются между месяцами. Долг/переплату заполняй, только если она есть.</div>
     </div>
@@ -402,23 +402,23 @@
       <div class="settings-body" id="settings-body">
         <div class="settings-row">
           <span>Электричество Т1, ₽/кВт·ч</span>
-          <input type="number" step="0.01" id="tariff-elec_t1">
+          <input autocomplete="off" type="number" step="0.01" id="tariff-elec_t1">
         </div>
         <div class="settings-row">
           <span>Электричество Т2, ₽/кВт·ч</span>
-          <input type="number" step="0.01" id="tariff-elec_t2">
+          <input autocomplete="off" type="number" step="0.01" id="tariff-elec_t2">
         </div>
         <div class="settings-row">
           <span>Электричество Т3, ₽/кВт·ч</span>
-          <input type="number" step="0.01" id="tariff-elec_t3">
+          <input autocomplete="off" type="number" step="0.01" id="tariff-elec_t3">
         </div>
         <div class="settings-row">
           <span>Холодная вода, ₽/м³</span>
-          <input type="number" step="0.01" id="tariff-coldwater">
+          <input autocomplete="off" type="number" step="0.01" id="tariff-coldwater">
         </div>
         <div class="settings-row">
           <span>Горячая вода, ₽/м³</span>
-          <input type="number" step="0.01" id="tariff-hotwater">
+          <input autocomplete="off" type="number" step="0.01" id="tariff-hotwater">
         </div>
         <div class="util-note">Тарифы сохраняются автоматически и подставляются каждый месяц.</div>
       </div>
@@ -437,7 +437,7 @@
         </div>
         <div class="drainage-input-cell">
           <label class="field-label">Сумма, ₽</label>
-          <input type="number" step="0.01" id="drainage-amount" class="req-fill" placeholder="0">
+          <input autocomplete="off" type="number" step="0.01" id="drainage-amount" class="req-fill" placeholder="0">
         </div>
         <div class="meter-cost" id="drainage-display">0 ₽</div>
       </div>
@@ -486,6 +486,14 @@
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
   }
+
+  // Отключаем "прокрутку значения" в number-полях колёсиком мыши —
+  // никакого случайного изменения цифр при скролле страницы.
+  document.addEventListener('wheel', (e) => {
+    if (e.target && e.target.tagName === 'INPUT' && e.target.type === 'number') {
+      e.preventDefault();
+    }
+  }, { passive: false });
 
   const ELECTRICITY_METERS = [
     { key: 'elec_t1', name: 'Т1', unit: 'кВт·ч' },
@@ -655,11 +663,11 @@
       </div>
       <div>
         <label class="field-label">Прошлый</label>
-        <input type="number" step="0.01" id="prev-${m.key}" value="${previousReadings[m.key] ?? 0}">
+        <input autocomplete="off" type="number" step="0.01" id="prev-${m.key}" value="${previousReadings[m.key] ?? 0}">
       </div>
       <div>
         <label class="field-label">Текущий</label>
-        <input type="number" step="0.01" id="curr-${m.key}" class="req-fill" placeholder="0" value="${draftCurrentReadings[m.key] ?? ''}">
+        <input autocomplete="off" type="number" step="0.01" id="curr-${m.key}" class="req-fill" placeholder="0" value="${draftCurrentReadings[m.key] ?? ''}">
       </div>
       <div class="meter-cost" id="cost-${m.key}">0 ₽</div>
     `;
