@@ -537,8 +537,6 @@
     return 'rentcalc_draft_v2';
   }
 
-  let draftCurrentReadings = {};
-
   function saveDraft() {
     try {
       const draft = {
@@ -554,12 +552,7 @@
           coldwater: document.getElementById('tariff-coldwater').value,
           hotwater: document.getElementById('tariff-hotwater').value,
         },
-        current: {},
       };
-      ALL_METERS.forEach((m) => {
-        const el = document.getElementById(`curr-${m.key}`);
-        if (el) draft.current[m.key] = el.value;
-      });
       localStorage.setItem(draftKey(), JSON.stringify(draft));
     } catch (e) { /* localStorage недоступен — просто не сохраняем черновик */ }
   }
@@ -628,11 +621,16 @@
           hotwater: parseFloat(draft.tariffs.hotwater) || config.tariffs.hotwater,
         };
       }
-      draftCurrentReadings = draft.current || {};
     }
 
     renderSettings();
     renderMeters();
+    setTimeout(() => {
+      ALL_METERS.forEach((m) => {
+        const el = document.getElementById(`curr-${m.key}`);
+        if (el) el.value = '';
+      });
+    }, 200);
     renderHistory();
     document.getElementById('last-readings-date').textContent =
       lastReadingsDate ? `Последние показания сохранены: ${formatDate(lastReadingsDate)}` : 'Показаний ещё не было — впишите текущие.';
@@ -667,7 +665,7 @@
       </div>
       <div>
         <label class="field-label">Текущий</label>
-        <input autocomplete="off" type="number" step="0.01" id="curr-${m.key}" class="req-fill" placeholder="0" value="${draftCurrentReadings[m.key] ?? ''}">
+        <input autocomplete="off" type="number" step="0.01" id="curr-${m.key}" class="req-fill" placeholder="0" value="">
       </div>
       <div class="meter-cost" id="cost-${m.key}">0 ₽</div>
     `;
