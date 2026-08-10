@@ -372,14 +372,6 @@
     </div>
 
     <div class="util-card">
-      <h2>Месяц</h2>
-      <div class="period-row">
-        <input type="text" id="period-input" placeholder="напр. Май - Июнь 26">
-      </div>
-      <div class="util-note">Подставь период так, как обычно пишешь.</div>
-    </div>
-
-    <div class="util-card">
       <h2>Вводные для расчета</h2>
       <div class="settings-row">
         <span>Имя арендатора</span>
@@ -405,6 +397,7 @@
         Показания счётчиков
         <button class="util-toggle" id="toggle-settings">Тарифы</button>
       </h2>
+      <div class="util-note" id="last-readings-date"></div>
 
       <div class="settings-body" id="settings-body">
         <div class="settings-row">
@@ -461,9 +454,10 @@
 
     <div class="util-card">
       <h2>Сообщение арендатору</h2>
-      <textarea class="msg-box" id="message-box" readonly></textarea>
+      <textarea class="msg-box" id="message-box"></textarea>
       <div class="btn-row">
         <button class="util-btn secondary" id="copy-btn">Скопировать сообщение</button>
+        <button class="util-btn secondary" id="reset-message-btn">Сбросить к дефолту</button>
       </div>
       <div class="status-msg" id="copy-status"></div>
     </div>
@@ -505,7 +499,7 @@
   const ALL_METERS = [...ELECTRICITY_METERS, ...WATER_METERS];
 
   const DEFAULT_CONFIG = {
-    tariffs: { elec_t1: 10.23, elec_t2: 3.71, elec_t3: 8.6, coldwater: 65.77, hotwater: 312.5 },
+    tariffs: { elec_t1: 10.4, elec_t2: 3.77, elec_t3: 8.74, coldwater: 66.87, hotwater: 317.71 },
     internetFee: 450,
     rentFee: 90000
   };
@@ -513,12 +507,15 @@
   let config = { ...DEFAULT_CONFIG };
   let previousReadings = { elec_t1: 0, elec_t2: 0, elec_t3: 0, coldwater: 0, hotwater: 0 };
   let history = [];
+  let lastReadingsDate = null; // дата последних сохранённых показаний
+  let messageManuallyEdited = false;
 
-  const monthNamesNom = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-  const now = new Date();
-  const prevMonthIdx = (now.getMonth() - 1 + 12) % 12;
-  const currMonthIdx = now.getMonth();
-  const defaultPeriod = `${monthNamesNom[prevMonthIdx]}-${monthNamesNom[currMonthIdx]} ${now.getFullYear()}`;
+  function formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
 
   function fmt(n) {
     const sign = n < 0 ? '-' : '';
@@ -537,7 +534,6 @@
   function saveDraft() {
     try {
       const draft = {
-        period: document.getElementById('period-input').value,
         tenantName: document.getElementById('tenant-name').value,
         rentFee: document.getElementById('rent-fee').value,
         internetFee: document.getElementById('internet-fee').value,
@@ -596,22 +592,22 @@
         rentFee: p.rentFee ?? DEFAULT_CONFIG.rentFee,
         internetFee: p.internetFee ?? DEFAULT_CONFIG.internetFee,
         tenantName: p.tenantName || '',
-        lastPeriod: p.lastPeriod || '',
         tariffs: { ...DEFAULT_CONFIG.tariffs, ...(p.tariffs || {}) },
       };
       previousReadings = { ...previousReadings, ...(p.lastReadings || {}) };
+      if (p.updatedAt) lastReadingsDate = p.updatedAt;
     }
     if (state && Array.isArray(state.history)) history = state.history;
 
     if (history.length > 0) {
       const last = history[history.length - 1];
       previousReadings = { ...previousReadings, ...last.current };
+      lastReadingsDate = last.date || lastReadingsDate;
     }
 
     // Черновик накладывается поверх — это несохранённые правки, они новее.
     const draft = loadDraft();
     if (draft) {
-      if (draft.period) config.lastPeriod = draft.period;
       if (draft.tenantName) config.tenantName = draft.tenantName;
       if (draft.rentFee) config.rentFee = parseFloat(draft.rentFee) || config.rentFee;
       if (draft.internetFee) config.internetFee = parseFloat(draft.internetFee) || config.internetFee;
@@ -630,10 +626,10 @@
     renderSettings();
     renderMeters();
     renderHistory();
-    document.getElementById('period-input').value = (draft && draft.period) || config.lastPeriod || defaultPeriod;
+    document.getElementById('last-readings-date').textContent =
+      lastReadingsDate ? `Последние показания сохранены: ${formatDate(lastReadingsDate)}` : 'Показаний ещё не было — впишите текущие.';
     document.getElementById('drainage-amount').value = (draft && draft.drainageAmount) || '';
     document.getElementById('debt-amount').value = (draft && draft.debtAmount) || '';
-    document.getElementById('period-input').addEventListener('input', recalc);
     document.getElementById('drainage-amount').addEventListener('input', recalc);
     document.getElementById('debt-amount').addEventListener('input', recalc);
     document.getElementById('tenant-name').addEventListener('input', recalc);
@@ -706,7 +702,7 @@
       item.className = 'history-item';
       item.innerHTML = `
         <button class="history-expand-btn" data-action="toggle" data-idx="${idx}" aria-label="Развернуть">▸</button>
-        <span class="history-period">${h.period}</span>
+        <span class="history-period">${formatDate(h.date)}</span>
         <b>${fmt(h.total)}</b>
       `;
       wrap.appendChild(item);
@@ -803,15 +799,12 @@
     return { details, internetFee, rentFee, total, totalUtilities, drainageAmount, debtAmount };
   }
 
-  function updateMessage(rentFee, totalUtilities, internetFee, debtAmount, total) {
-    const period = document.getElementById('period-input').value.trim() || defaultPeriod;
+  function generateDefaultMessage(rentFee, totalUtilities, internetFee, debtAmount, total) {
     const tenant = document.getElementById('tenant-name').value.trim();
     const greeting = tenant ? `${tenant}, добрый день! Вот расчёт по оплате аренды.` : 'Добрый день! Вот расчёт по оплате аренды.';
 
     const lines = [];
     lines.push(greeting);
-    lines.push('');
-    lines.push(`Месяц: ${period}`);
     lines.push('');
     lines.push(`Квартплата: ${fmt(rentFee)}`);
     lines.push(`ЖКУ: ${fmt(totalUtilities)}`);
@@ -822,7 +815,15 @@
     }
     lines.push(`Сумма: ${fmt(total)}`);
 
-    document.getElementById('message-box').value = lines.join('\n');
+    return lines.join('\n');
+  }
+
+  function updateMessage(rentFee, totalUtilities, internetFee, debtAmount, total) {
+    // Если пользователь отредактировал сообщение вручную — больше не перезаписываем
+    // его при каждом пересчёте, чтобы не затереть правки.
+    if (messageManuallyEdited) return;
+    document.getElementById('message-box').value =
+      generateDefaultMessage(rentFee, totalUtilities, internetFee, debtAmount, total);
   }
 
   function saveConfig() {
@@ -836,7 +837,6 @@
     config.tariffs.coldwater = parseFloat(document.getElementById('tariff-coldwater').value) || 0;
     config.tariffs.hotwater = parseFloat(document.getElementById('tariff-hotwater').value) || 0;
     config.internetFee = parseFloat(document.getElementById('internet-fee').value) || 0;
-    config.lastPeriod = document.getElementById('period-input').value.trim();
   }
 
   document.getElementById('toggle-settings').addEventListener('click', () => {
@@ -859,9 +859,20 @@
     setTimeout(() => { status.textContent = ''; }, 2000);
   });
 
+  document.getElementById('message-box').addEventListener('input', () => {
+    messageManuallyEdited = true;
+  });
+
+  document.getElementById('reset-message-btn').addEventListener('click', () => {
+    messageManuallyEdited = false;
+    recalc();
+    const status = document.getElementById('copy-status');
+    status.textContent = 'Сообщение сброшено к дефолту.';
+    setTimeout(() => { status.textContent = ''; }, 2000);
+  });
+
   document.getElementById('save-btn').addEventListener('click', async () => {
     const { details, total, rentFee, internetFee, totalUtilities, drainageAmount, debtAmount } = recalc();
-    const period = document.getElementById('period-input').value.trim() || defaultPeriod;
     const currentReadings = {};
     details.forEach(d => {
       const key = ALL_METERS.find(m => m.name === d.name).key;
@@ -871,7 +882,6 @@
     saveConfig();
 
     const entry = {
-      period,
       date: new Date().toISOString(),
       current: currentReadings,
       total,
@@ -895,7 +905,6 @@
         rentFee: config.rentFee,
         internetFee: config.internetFee,
         tariffs: config.tariffs,
-        lastPeriod: period,
         lastReadings: { ...previousReadings, ...currentReadings },
       },
       entry,
@@ -915,7 +924,9 @@
 
       clearDraft();
       status.textContent = 'Сохранено! Подтверждение пришло в чат с ботом.';
-      history.push({ period: entry.period, total: entry.total, breakdown: entry.breakdown });
+      lastReadingsDate = entry.date;
+      document.getElementById('last-readings-date').textContent = `Последние показания сохранены: ${formatDate(lastReadingsDate)}`;
+      history.push({ date: entry.date, total: entry.total, breakdown: entry.breakdown });
       renderHistory();
       previousReadings = { ...previousReadings, ...currentReadings };
       document.getElementById('drainage-amount').value = '';
