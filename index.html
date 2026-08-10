@@ -515,6 +515,7 @@
   let config = { ...DEFAULT_CONFIG };
   let previousReadings = { elec_t1: 0, elec_t2: 0, elec_t3: 0, coldwater: 0, hotwater: 0 };
   let history = [];
+  let draftCurrentReadings = {};
   let lastReadingsDate = null; // дата последних сохранённых показаний
   let messageManuallyEdited = false;
 
@@ -537,9 +538,12 @@
     return 'rentcalc_draft_v2';
   }
 
+  const DRAFT_EXPIRY_MS = 6 * 60 * 60 * 1000; // черновик считается неактуальным через 6 часов
+
   function saveDraft() {
     try {
       const draft = {
+        savedAt: Date.now(),
         tenantName: document.getElementById('tenant-name').value,
         rentFee: document.getElementById('rent-fee').value,
         internetFee: document.getElementById('internet-fee').value,
@@ -552,7 +556,12 @@
           coldwater: document.getElementById('tariff-coldwater').value,
           hotwater: document.getElementById('tariff-hotwater').value,
         },
+        current: {},
       };
+      ALL_METERS.forEach((m) => {
+        const el = document.getElementById(`curr-${m.key}`);
+        if (el) draft.current[m.key] = el.value;
+      });
       localStorage.setItem(draftKey(), JSON.stringify(draft));
     } catch (e) { /* localStorage недоступен — просто не сохраняем черновик */ }
   }
@@ -561,7 +570,13 @@
     try {
       const raw = localStorage.getItem(draftKey());
       if (!raw) return null;
-      return JSON.parse(raw);
+      const draft = JSON.parse(raw);
+      if (draft.savedAt && (Date.now() - draft.savedAt > DRAFT_EXPIRY_MS)) {
+        // Черновик протух — считаем неактуальным и подчищаем.
+        clearDraft();
+        return null;
+      }
+      return draft;
     } catch (e) { return null; }
   }
 
@@ -621,16 +636,11 @@
           hotwater: parseFloat(draft.tariffs.hotwater) || config.tariffs.hotwater,
         };
       }
+      draftCurrentReadings = draft.current || {};
     }
 
     renderSettings();
     renderMeters();
-    setTimeout(() => {
-      ALL_METERS.forEach((m) => {
-        const el = document.getElementById(`curr-${m.key}`);
-        if (el) el.value = '';
-      });
-    }, 200);
     renderHistory();
     document.getElementById('last-readings-date').textContent =
       lastReadingsDate ? `Последние показания сохранены: ${formatDate(lastReadingsDate)}` : 'Показаний ещё не было — впишите текущие.';
@@ -665,7 +675,7 @@
       </div>
       <div>
         <label class="field-label">Текущий</label>
-        <input autocomplete="off" type="number" step="0.01" id="curr-${m.key}" class="req-fill" placeholder="0" value="">
+        <input autocomplete="off" type="number" step="0.01" id="curr-${m.key}" class="req-fill" placeholder="0" value="${draftCurrentReadings[m.key] ?? ''}">
       </div>
       <div class="meter-cost" id="cost-${m.key}">0 ₽</div>
     `;
