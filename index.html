@@ -382,6 +382,20 @@
     flex-shrink: 0;
   }
   .icon-btn:hover { opacity: 0.85; }
+
+  .tariff-hint {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--amber-soft);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .tariff-hint b { color: var(--ink); }
+  .tariff-hint ul { margin: 6px 0; padding-left: 18px; }
+  .tariff-hint li { margin-bottom: 3px; }
+  .tariff-hint a { color: var(--teal); }
 </style>
 </head>
 <body>
@@ -445,6 +459,19 @@
           <input autocomplete="off" type="number" step="0.01" id="tariff-hotwater">
         </div>
         <div class="util-note">Тарифы сохраняются автоматически и подставляются каждый месяц.</div>
+
+        <div class="tariff-hint">
+          <b>Тарифы в Москве на 2026 год</b> меняются дважды в год (с 1 января и с 1 октября) и зависят от категории жилья (например, наличие электроплиты). Ориентировочно:
+          <ul>
+            <li>Электричество (3-тарифный учёт, без электроплиты): пик ≈ 10,40 ₽, полупик ≈ 8,74 ₽, ночь ≈ 3,77 ₽ — 1-е полугодие 2026, с 1 октября тарифы вырастут.</li>
+            <li>Холодная вода: 66,87 ₽/м³ (янв–сен), 73,79 ₽/м³ (окт–дек).</li>
+            <li>Водоотведение: 52,48 ₽/м³ (янв–сен), 60,24 ₽/м³ (окт–дек).</li>
+          </ul>
+          Точные цифры под вашу категорию — на официальных сайтах:
+          <a href="https://www.mosenergosbyt.ru/individuals/tariffs-n-payments/tariffs-msk/" target="_blank" rel="noopener">Мосэнергосбыт (электричество)</a>
+          ·
+          <a href="https://www.mosvodokanal.ru/forpeople/tariffs/" target="_blank" rel="noopener">Мосводоканал (вода)</a>
+        </div>
       </div>
 
       <div class="subgroup-label">Электричество</div>
