@@ -358,6 +358,30 @@
     margin-top: 6px;
     min-height: 16px;
   }
+
+  .msg-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .msg-header h2 { margin: 0; }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--amber-soft);
+    color: var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -453,11 +477,18 @@
     </div>
 
     <div class="util-card">
-      <h2>Сообщение арендатору</h2>
+      <div class="msg-header">
+        <h2>Сообщение арендатору</h2>
+        <button class="icon-btn" id="reset-message-btn" title="Сбросить к дефолту" aria-label="Сбросить к дефолту">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 1 2.64 6.36"></path>
+            <polyline points="3 8 3 12 7 12"></polyline>
+          </svg>
+        </button>
+      </div>
       <textarea class="msg-box" id="message-box"></textarea>
       <div class="btn-row">
         <button class="util-btn secondary" id="copy-btn">Скопировать сообщение</button>
-        <button class="util-btn secondary" id="reset-message-btn">Сбросить к дефолту</button>
       </div>
       <div class="status-msg" id="copy-status"></div>
     </div>
@@ -529,6 +560,11 @@
   function fmt(n) {
     const sign = n < 0 ? '-' : '';
     return sign + Math.round(Math.abs(n)).toLocaleString('ru-RU') + ' ₽';
+  }
+
+  function fmtP(n) {
+    const sign = n < 0 ? '-' : '';
+    return sign + Math.round(Math.abs(n)).toLocaleString('ru-RU') + ' р.';
   }
 
   // Черновик: то, что пользователь ввёл, но ещё не нажал "Сохранить этот расчёт".
@@ -822,14 +858,14 @@
     const lines = [];
     lines.push(greeting);
     lines.push('');
-    lines.push(`Квартплата: ${fmt(rentFee)}`);
-    lines.push(`ЖКУ: ${fmt(totalUtilities)}`);
-    lines.push(`Интернет: ${fmt(internetFee)}`);
+    lines.push(`Квартплата: ${fmtP(rentFee)}`);
+    lines.push(`ЖКУ: ${fmtP(totalUtilities)}`);
+    lines.push(`Интернет: ${fmtP(internetFee)}`);
     if (debtAmount !== 0) {
       const label = debtAmount > 0 ? 'Долг с прошлого месяца' : 'Переплата с прошлого месяца';
-      lines.push(`${label}: ${fmt(debtAmount)}`);
+      lines.push(`${label}: ${fmtP(debtAmount)}`);
     }
-    lines.push(`Сумма: ${fmt(total)}`);
+    lines.push(`Сумма: ${fmtP(total)}`);
 
     return lines.join('\n');
   }
