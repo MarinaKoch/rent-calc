@@ -439,15 +439,15 @@
 
       <div class="settings-body" id="settings-body">
         <div class="settings-row">
-          <span>Электричество Т1, ₽/кВт·ч</span>
+          <span>Электричество Т1 (пик), ₽/кВт·ч</span>
           <input autocomplete="off" type="number" step="0.01" id="tariff-elec_t1">
         </div>
         <div class="settings-row">
-          <span>Электричество Т2, ₽/кВт·ч</span>
+          <span>Электричество Т2 (ночь), ₽/кВт·ч</span>
           <input autocomplete="off" type="number" step="0.01" id="tariff-elec_t2">
         </div>
         <div class="settings-row">
-          <span>Электричество Т3, ₽/кВт·ч</span>
+          <span>Электричество Т3 (полупик), ₽/кВт·ч</span>
           <input autocomplete="off" type="number" step="0.01" id="tariff-elec_t3">
         </div>
         <div class="settings-row">
@@ -554,9 +554,9 @@
   }, { passive: false });
 
   const ELECTRICITY_METERS = [
-    { key: 'elec_t1', name: 'Т1', unit: 'кВт·ч' },
-    { key: 'elec_t2', name: 'Т2', unit: 'кВт·ч' },
-    { key: 'elec_t3', name: 'Т3', unit: 'кВт·ч' }
+    { key: 'elec_t1', name: 'Т1 (пик)', unit: 'кВт·ч' },
+    { key: 'elec_t2', name: 'Т2 (ночь)', unit: 'кВт·ч' },
+    { key: 'elec_t3', name: 'Т3 (полупик)', unit: 'кВт·ч' }
   ];
   const WATER_METERS = [
     { key: 'coldwater', name: 'Холодная вода', unit: 'м³' },
